@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "129198803983",
+    "project_id": "parking-push-notification",
+    "storage_bucket": "parking-push-notification.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:129198803983:android:6c445d80f5386cbc10277a",
+        "android_client_info": {
+          "package_name": "com.example.big_cart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "129198803983-lglb4i6mit139u1a8a7ktkqa67qdrurr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCy3MIiGIpwyL7DFv3NNrLeVJFQvsfz3SA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "129198803983-lglb4i6mit139u1a8a7ktkqa67qdrurr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
