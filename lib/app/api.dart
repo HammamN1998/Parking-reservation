@@ -6,7 +6,7 @@ import '../models/user_model.dart';
 import 'package:http/http.dart' as http;
 
 class Api {
-  static const String _baseUrl = 'http://10.0.2.2:80/ParkingServer/index.php';
+  static const String _baseUrl = 'https://technolab4iot.com/parking_reservation/index.php';
 
   static Future<User> signupUser(
     String email,

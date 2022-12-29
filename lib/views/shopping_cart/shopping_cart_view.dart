@@ -1,27 +1,18 @@
 import 'dart:convert';
-
 import 'package:big_cart/constants/asset_constants.dart';
 import 'package:big_cart/shared/styles.dart';
-import 'package:big_cart/viewmodels/shopping_cart_viewmodel.dart';
 import 'package:big_cart/views/shopping_cart/title_with_cost.dart';
-import 'package:big_cart/widgets/dumb/customized_app_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_countdown_timer/countdown_timer_controller.dart';
 import 'package:flutter_countdown_timer/flutter_countdown_timer.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:stacked/stacked.dart';
 import '../../app/locator.dart';
 import '../../services/authentication_service.dart';
 import '../../shared/helpers.dart';
 import '../../widgets/dumb/app_main_button.dart';
-import 'cart_item_list.dart';
 import 'package:http/http.dart' as http;
-import 'cost_with_main_button.dart';
-
+import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class ShoppingCartView extends StatefulWidget {
   final int? id;
@@ -47,7 +38,6 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
   late int totalTime;
   late int totalTimeInHours;
   Duration selectedHoursFromTimePicker = const Duration(hours:0, minutes: 0, seconds: 0);
-  final _auth = locator<AuthenticationService>();
   dynamic waitingList;
   int timeWhenGetDataFuncCalled = 0;
   late bool isOpen = widget.state == 'on';
@@ -93,7 +83,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
             child: Switch(
               value: isOpen,
               onChanged: (value) async {
-                if (_auth.email == waitingList['data'][0]['email'].toString() ) {
+                if (widget._auth.email == waitingList['data'][0]['email'].toString() ) {
                   if (await updateParkState(value)) {
                     setState(() {
                       isOpen  = value;
@@ -214,9 +204,9 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                                         onEnd: () {
                                           updateParkState(false);
                                           getDataFuture = getData();
+                                          checkParkState(context);
                                         },
                                       ) : Text(neededDuration.toString().split('.')[0]),
-
                                     ],
                                   ),
                                 ],
@@ -252,8 +242,9 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                 ),
                 const SizedBox(height: 16),
                 AppMainButton(
-                    onTap: () {
-                      _auth.type == 'robot' ? showTimeDialog() : showDataAndTimeDialog();
+                    onTap: () async{
+                      // bool isFilled = await isParkFilled();
+                      widget._auth.type == 'robot' ? showTimeDialog() : showDataAndTimeDialog();
                     },
                     text: 'Reserve a turn'
                 ),
@@ -266,13 +257,12 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     );
   }
 
-  Future<dynamic> getData()async
-  {
+  Future<dynamic> getData() async {
     String data;
     String url1;
 
     data = jsonEncode({"park_id":widget.id.toString()});
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/parks/list";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/parks/list";
 
     final Uri url = Uri.parse(url1);
     var response = await http.post(url,body: data);
@@ -307,8 +297,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
   }
 
-  Future<bool> updateParkState(bool state)async
-  {
+  Future<bool> updateParkState(bool state) async {
     String data;
     String url1;
 
@@ -316,7 +305,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
       "park_id":widget.id.toString(),
       "state" : state? 'on' : 'off'
     });
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/parks/update";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/parks/update";
 
     final Uri url = Uri.parse(url1);
     var response = await http.post(url,body: data);
@@ -329,8 +318,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
   }
 
-  Future<void> addWaitingItem(Duration duration) async
-  {
+  Future<void> addWaitingItem(Duration duration) async {
     String data;
     String url1;
     int currentDateInSeconds = DateTime.now().millisecondsSinceEpoch;
@@ -339,10 +327,10 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
     data = jsonEncode({
       "park_id" : widget.id.toString(),
-      "user_id" : _auth.id.toString(),
+      "user_id" : widget._auth.id.toString(),
       "needed_hours" : neededHours.toString()
     });
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/parks/add_list";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/parks/add_list";
 
     final Uri url = Uri.parse(url1);
     var response = await http.post(url,body: data);
@@ -358,8 +346,20 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
   }
 
-  Future<void> askSendNotification(Duration duration) async
-  {
+  Future<bool> isParkFilled() async {
+    String url1;
+    url1 ="https://technolab4iot.com/parking_reservation/is_park_filled.php?park_id=${widget.id.toString()}";
+    final Uri url = Uri.parse(url1);
+    var response = await http.get(url,);
+    var responseBody= jsonDecode(response.body);
+    if (responseBody['status'] == 'fail') {
+      showErrorDialog(responseBody['data']);
+      return false;
+    }
+    return responseBody['message'][0]['is_filled'] == 'yes' ? true : false;
+  }
+
+  Future<void> askSendNotification(Duration duration) async {
     String data;
     String url1;
 
@@ -367,26 +367,25 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
       "title" : "Your turn will end soon",
       "body" : "5 minutes left for your turn to end",
       "park_id" : widget.id.toString(),
-      "user_id" : _auth.id.toString(),
+      "user_id" : widget._auth.id.toString(),
       "needed_hours" : duration.inSeconds.toString()
     });
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/notification";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/notification";
 
     final Uri url = Uri.parse(url1);
     http.post(url,body: data);
   }
 
-  Future<dynamic> deleteWaitingItem(String waitingListID) async
-  {
+  Future<dynamic> deleteWaitingItem(String waitingListID) async {
     String data;
     String url1;
 
     data = jsonEncode({
       "park_id" : widget.id.toString(),
-      "user_id" : _auth.id.toString(),
+      "user_id" : widget._auth.id.toString(),
       "waiting_list_id" : waitingListID
     });
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/parks/delete_list";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/parks/delete_list";
 
     final Uri url = Uri.parse(url1);
     var response = await http.post(url,body: data);
@@ -403,8 +402,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
   }
 
-  Future<void> sendNotification(String title, body) async
-  {
+  Future<void> sendNotification(String title, body) async {
     String data;
     String url1;
 
@@ -412,7 +410,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
       "title" : title,
       "body" : body,
     });
-    url1 ="http://10.0.2.2:80/ParkingServer/index.php/notification";
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/notification";
 
     final Uri url = Uri.parse(url1);
     var response = await http.post(url,body: data);
@@ -458,7 +456,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                 TextButton(
                     onPressed: () async {
                       Navigator.of(context).pop();
-                      double price = _auth.type == 'golden' ? selectedHoursFromTimePicker.inMinutes.toDouble() * goldMinutePrice : selectedHoursFromTimePicker.inMinutes.toDouble() * normalMinutePrice;
+                      double price = widget._auth.type == 'golden' ? selectedHoursFromTimePicker.inMinutes.toDouble() * goldMinutePrice : selectedHoursFromTimePicker.inMinutes.toDouble() * normalMinutePrice;
                       bool isConfirmed = await showMyConfirmDialog(context, price);
                       if (isConfirmed) {
                         askSendNotification(selectedHoursFromTimePicker);
@@ -593,7 +591,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                             minutes: int.parse(minutesController.text),
                             seconds: int.parse(secondsController.text),
                           );
-                          double price = _auth.type == 'golden' ? selectedHoursFromTimePicker.inMinutes.toDouble() * goldMinutePrice : selectedHoursFromTimePicker.inMinutes.toDouble() * normalMinutePrice;
+                          double price = widget._auth.type == 'golden' ? selectedHoursFromTimePicker.inMinutes.toDouble() * goldMinutePrice : selectedHoursFromTimePicker.inMinutes.toDouble() * normalMinutePrice;
                           bool isConfirmed = await showMyConfirmDialog(context, price);
                           if (isConfirmed) {
                             askSendNotification(selectedHoursFromTimePicker);
@@ -697,4 +695,96 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     return isConfirmed;
   }
 
+  Future<bool> showTimeExpandedDialog(BuildContext context) async {
+    bool isConfirmed = false;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const ListTile(
+            leading: Icon(Icons.info, color: Colors.red,),
+            title: Text(
+              "Your Time Ended !!, you should move your car ",
+              style: TextStyle(
+                color: Colors.red,
+                // fontSize: 40,
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Car moved'),
+              onPressed: () {
+                isConfirmed = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return isConfirmed;
+  }
+
+  Future<bool> showTimePayExpandedTimeDialog(BuildContext context, Duration duration) async {
+    bool isConfirmed = false;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: ListTile(
+            leading: Icon(Icons.info, color: Colors.red,),
+            title: Text(
+              "Your expanded time is ${printDuration(duration)} \nYou have to pay ${duration.inMinutes.toDouble()*expandedMinutePrice} NIS",
+              style: const TextStyle(
+                color: Colors.red,
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Pay'),
+              onPressed: () {
+                isConfirmed = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return isConfirmed;
+  }
+
+  checkParkState(BuildContext context) async {
+    int duration =0 ;
+    final stopWatchTimer = StopWatchTimer(
+      onChange: (value) {
+        duration = value;
+      },
+    );
+
+    bool isFilled = await isParkFilled();
+    stopWatchTimer.onStartTimer();
+
+    while (isFilled) {
+      await showTimeExpandedDialog(context);
+      isFilled = await isParkFilled();
+    }
+
+    stopWatchTimer.onStopTimer();
+    Duration expandedDuration = Duration(milliseconds: duration);
+
+    await showTimePayExpandedTimeDialog(context, expandedDuration);
+
+  }
+
+  String printDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  }
 }

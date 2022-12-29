@@ -34,6 +34,7 @@ class HomeView extends StatelessWidget {
       onModelReady: (viewModel) => {
         viewModel.onModelReady(),
       },
+      fireOnModelReadyOnce: false,
       builder: (context, model, child) => WillPopScope(
         onWillPop: () async {
           if (model.onlyProducts) {

@@ -1,5 +1,6 @@
-const double normalMinutePrice = 0.05;
-const double goldMinutePrice = normalMinutePrice * 1.5;
+const double normalMinutePrice = 0.09;// 5 nis
+const double goldMinutePrice = 0.12;// 7 nis
+const double expandedMinutePrice = 0.17;// 10 nis
 
 class AssetConstants {
   // Png Assets
