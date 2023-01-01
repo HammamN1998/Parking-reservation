@@ -365,7 +365,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
     data = jsonEncode({
       "title" : "Your turn will end soon",
-      "body" : "5 minutes left for your turn to end",
+      "body" : "15 minutes left for your turn to end",
       "park_id" : widget.id.toString(),
       "user_id" : widget._auth.id.toString(),
       "needed_hours" : duration.inSeconds.toString()
@@ -768,7 +768,6 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
     bool isFilled = await isParkFilled();
     stopWatchTimer.onStartTimer();
-
     while (isFilled) {
       await showTimeExpandedDialog(context);
       isFilled = await isParkFilled();

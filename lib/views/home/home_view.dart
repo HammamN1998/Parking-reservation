@@ -51,6 +51,10 @@ class HomeView extends StatelessWidget {
           child: Stack(
             children: [
               Scaffold(
+                appBar: AppBar(
+                  title: const Text('Parks Catalog'),
+                  centerTitle: true,
+                ),
                 drawer: CustomHomeDrawer(),
                 body: Column(
                   children: [

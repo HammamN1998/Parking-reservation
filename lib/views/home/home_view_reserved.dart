@@ -54,6 +54,10 @@ class HomeViewReserved extends StatelessWidget {
           child: Stack(
             children: [
               Scaffold(
+                appBar: AppBar(
+                  title: const Text('Parks Catalog'),
+                  centerTitle: true,
+                ),
                 drawer: CustomHomeDrawerReserved(),
                 body: Column(
                   children: [
