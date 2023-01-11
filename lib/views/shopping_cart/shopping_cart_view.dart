@@ -41,6 +41,8 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
   dynamic waitingList;
   int timeWhenGetDataFuncCalled = 0;
   late bool isOpen = widget.state == 'on';
+  late bool isMainDoorOpen = false;
+  int secondsForMainDoorToClose = 20;
 
   @override
   void initState(){
@@ -69,6 +71,23 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
         centerTitle: true,
         backgroundColor: Colors.transparent,
         actions: [
+          InkWell(
+            child: Container(
+              padding: const EdgeInsets.only(right: 10),
+              child: Icon(
+                isMainDoorOpen ?
+                  Icons.door_sliding_outlined :
+                  Icons.door_sliding_rounded,
+                color: isMainDoorOpen ?
+                  Colors.green :
+                  Colors.red,
+                size: 40,
+              ),
+            ),
+            onTap: () async {
+              openMainDoor(secondsForMainDoorToClose);
+            },
+          ),
           InkWell(
             child: Container(
               padding: const EdgeInsets.only(right: 10),
@@ -419,6 +438,29 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     if(responseBody['status'] == 'fail'){
       showErrorDialog(responseBody['data'].toString());
     }
+  }
+
+  Future<void> openMainDoor(int secondsToClose) async {
+    String data;
+    String url1;
+
+    data = jsonEncode({
+      "seconds_to_close" : secondsToClose.toString(),
+    });
+    url1 ="https://technolab4iot.com/parking_reservation/index.php/open_main_door";
+
+    final Uri url = Uri.parse(url1);
+    http.post(url,body: data);
+    setState(() {
+      isMainDoorOpen = true;
+    });
+
+    await Future.delayed(Duration(seconds: secondsToClose), (){});
+
+    setState(() {
+      isMainDoorOpen = false;
+    });
+
   }
 
   void showTimeDialog() {
