@@ -119,7 +119,7 @@ class HomeViewReservedParksModel extends BaseViewModel {
         categories = await Api.getParks(_auth.authToken);
         products = await Api.getProducts(_auth.authToken);
         freeParks = 0 ;
-        products.removeWhere((product) => product.waitingListsInside == '0');
+        products.removeWhere((product) => product.waitingListsInside != '0');
         _isLoading = false;
       }
     } catch (e) {

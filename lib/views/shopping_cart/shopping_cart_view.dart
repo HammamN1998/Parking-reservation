@@ -106,6 +106,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                   if (await updateParkState(value)) {
                     setState(() {
                       isOpen  = value;
+                      getDataFuture = getData();
                     });
                   }
                 } else {
@@ -453,12 +454,14 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     http.post(url,body: data);
     setState(() {
       isMainDoorOpen = true;
+      getDataFuture = getData();
     });
 
     await Future.delayed(Duration(seconds: secondsToClose), (){});
 
     setState(() {
       isMainDoorOpen = false;
+      getDataFuture = getData();
     });
 
   }

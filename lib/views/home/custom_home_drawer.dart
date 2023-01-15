@@ -96,7 +96,7 @@ class CustomHomeDrawer extends ViewModelWidget<HomeViewModel> {
               color: appGreyColor,
             ),
             title: Text(
-              'Reserved Parks',
+              'Free Parks',
               style: heading7.copyWith(color: appGreyColor),
             ),
           ),
