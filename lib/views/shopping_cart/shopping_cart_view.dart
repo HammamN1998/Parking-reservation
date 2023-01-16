@@ -222,6 +222,9 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
                                         endTime: endTime,
                                         textStyle: const TextStyle(fontSize: 20, color: Colors.red),
                                         onEnd: () {
+                                          setState(() {
+                                            isOpen = false;
+                                          });
                                           updateParkState(false);
                                           getDataFuture = getData();
                                           checkParkState(context);
@@ -309,7 +312,11 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
 
         timeWhenGetDataFuncCalled = DateTime.now().millisecondsSinceEpoch;
 
-        if (responseBody['data'].length > 0 ) isOpen = responseBody['data'][0]['park_state'] == 'on';
+        if (responseBody['data'].length > 0 ) {
+          setState(() {
+            isOpen = responseBody['data'][0]['park_state'] == 'on';
+          });
+        }
       });
 
     }
