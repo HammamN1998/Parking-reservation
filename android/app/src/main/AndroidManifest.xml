@@ -2,7 +2,7 @@
     package="com.example.big_cart">
     <uses-permission android:name="android.permission.INTERNET"/>
    <application
-        android:label="big_cart"
+        android:label="Smart Park"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
