@@ -766,7 +766,7 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
           ),
           actions: <Widget>[
             TextButton(
-              child: const Text('Car moved'),
+              child: const Text('Move Car'),
               onPressed: () {
                 isConfirmed = true;
                 Navigator.of(context).pop();
@@ -810,6 +810,37 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     return isConfirmed;
   }
 
+  Future<bool> showWait25SecondsDialog(BuildContext context,) async {
+    bool isConfirmed = false;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const ListTile(
+            leading: Icon(Icons.info, color: Colors.red,),
+            title: Text(
+              "Park is open now, please move your can within 25 seconds.",
+              style: TextStyle(
+                color: Colors.red,
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ok'),
+              onPressed: () {
+                isConfirmed = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+    return isConfirmed;
+  }
+
   checkParkState(BuildContext context) async {
     int duration =0 ;
     final stopWatchTimer = StopWatchTimer(
@@ -822,6 +853,10 @@ class _ShoppingCartViewState extends State<ShoppingCartView> {
     stopWatchTimer.onStartTimer();
     while (isFilled) {
       await showTimeExpandedDialog(context);
+      await showWait25SecondsDialog(context);
+      await updateParkState(true);
+      await Future.delayed(Duration(seconds: 25), (){});
+      await updateParkState(false);
       isFilled = await isParkFilled();
     }
 
